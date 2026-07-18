@@ -1,23 +1,25 @@
 #include <stdio.h>
 #include <time.h>
+#include <stdint.h>
 
 #define BIN_SIZE 20
 #define NUM_BINS 50
 #define CACHE_SIZE 40000000
 #define HIST_DENSITY 40000
 
-unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
-void print_histogram(unsigned long histogram[]);
+uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
+void print_histogram(uint64_t histogram[]);
+void print_telemetry(uint64_t n, uint64_t longest_stop_time, uint64_t longest_n, uint64_t max_altitude, uint64_t theoretical_math_steps, uint64_t histogram[]);
 
-unsigned long cache[CACHE_SIZE];
-unsigned long actual_math_steps = 0;
+uint64_t cache[CACHE_SIZE];
+uint64_t actual_math_steps = 0;
 
 int main(void) {
 	clock_t start_time = clock();
 
-	unsigned long curr_stop_time, longest_stop_time = 1, n = 1, longest_n; 
-	unsigned long index, max_altitude = 0, histogram[NUM_BINS] = {0};
-	unsigned long theoretical_math_steps = 0;
+	uint64_t curr_stop_time, longest_stop_time = 1, n = 1, longest_n = 1; 
+	uint64_t index, max_altitude = 0, histogram[NUM_BINS] = {0};
+	uint64_t theoretical_math_steps = 0;
 
 	while(1) {
 		// only check clock occasionally
@@ -45,22 +47,12 @@ int main(void) {
 		n++;
 	}
 
-	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_stop_time, longest_n);
-	printf("Total numbers processed: %lu (peak altitude = %le)\n\n", n, (double)max_altitude);
-
-	print_histogram(histogram);
-
-	double math_skipped_pct = 100.0 - ((double)actual_math_steps / theoretical_math_steps * 100.0);
-
-	printf("Theoretical math steps: %lu\n", theoretical_math_steps);
-	printf("Actual math steps: %lu\n", actual_math_steps);
-	printf("Work bypassed by cache: %.2f%%\n", math_skipped_pct);	
-
+	print_telemetry(n - 1, longest_stop_time, longest_n, max_altitude, theoretical_math_steps, histogram);
 	return 0;
 }
 
-unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
-	unsigned long stop_time = 0, n_new = n;
+uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
+	uint64_t stop_time = 0, n_new = n;
 
 	while (n_new > 1) {
 		if (n_new < CACHE_SIZE && cache[n_new] > 0) {
@@ -87,11 +79,11 @@ unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
 	return stop_time; 
 }
 
-void print_histogram(unsigned long histogram[]) {
+void print_histogram(uint64_t histogram[]) {
 	printf("Numbers per star (*): %d\n", HIST_DENSITY);
 	for (int i = 0; i < NUM_BINS; i++) {
-	    unsigned long range_start = i * BIN_SIZE;
-	    unsigned long range_end = range_start + BIN_SIZE - 1;
+	    uint64_t range_start = i * BIN_SIZE;
+	    uint64_t range_end = range_start + BIN_SIZE - 1;
 	    
 	    if (i == NUM_BINS - 1) {
 		printf("%4lu+      | ", range_start);
@@ -99,10 +91,23 @@ void print_histogram(unsigned long histogram[]) {
 		printf("%4lu-%-4lu | ", range_start, range_end);
 	    }
 
-	    unsigned long stars = histogram[i] / HIST_DENSITY;
-	    for (unsigned long s = 0; s < stars; s++) {
+	    uint64_t stars = histogram[i] / HIST_DENSITY;
+	    for (uint64_t s = 0; s < stars; s++) {
 		printf("*");
 	    }
 	    printf(" (%lu)\n", histogram[i]);
 	}
+}
+
+void print_telemetry(uint64_t n, uint64_t longest_stop_time, uint64_t longest_n, uint64_t max_altitude, uint64_t theoretical_math_steps, uint64_t histogram[]) {
+	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_stop_time, longest_n);
+	printf("Total numbers processed: %lu (peak altitude = %le)\n\n", n, (double)max_altitude);
+
+	print_histogram(histogram);
+
+	double math_skipped_pct = 100.0 - ((double)actual_math_steps / theoretical_math_steps * 100.0);
+
+	printf("Theoretical math steps: %lu\n", theoretical_math_steps);
+	printf("Actual math steps: %lu\n", actual_math_steps);
+	printf("Work bypassed by cache: %.2f%%\n", math_skipped_pct);	
 }

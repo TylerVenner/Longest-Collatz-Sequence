@@ -4,14 +4,14 @@
 #define BIN_SIZE 20
 #define NUM_BINS 50
 
-unsigned long compute_length(unsigned long int n, unsigned long *peak_alt);
+unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
 void print_histogram(unsigned long histogram[]);
 
 int main(void) {
 	clock_t start_time = clock();
 
-	unsigned long current_length, longest_length = 1, n = 1, longest_n, max_altitude = 0, index;
-	unsigned long histogram[NUM_BINS] = {0};
+	unsigned long curr_stop_time, longest_stop_time = 1, n = 1, longest_n; 
+	unsigned long index, max_altitude = 0, histogram[NUM_BINS] = {0};
 
 	while(1) {
 		double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
@@ -20,14 +20,14 @@ int main(void) {
 			break;
 		}
 
-		current_length = compute_length(n, &max_altitude);
+		curr_stop_time = compute_stop_time(n, &max_altitude);
 
-		if (current_length > longest_length) {
+		if (curr_stop_time > longest_stop_time) {
 			longest_n = n;
-			longest_length = current_length;
+			longest_stop_time = curr_stop_time;
 		}
 
-		index = current_length / BIN_SIZE;
+		index = curr_stop_time / BIN_SIZE;
 		if (index >= NUM_BINS) {
 			index = NUM_BINS - 1;
 		}
@@ -36,7 +36,7 @@ int main(void) {
 		n++;
 	}
 
-	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_length, longest_n);
+	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_stop_time, longest_n);
 	printf("Total numbers processed: %lu (peak altitude = %le)\n\n", n, (double)max_altitude);
 
 	print_histogram(histogram);
@@ -44,8 +44,8 @@ int main(void) {
 	return 0;
 }
 
-unsigned long compute_length(unsigned long n, unsigned long *peak_alt) {
-	unsigned long length = 0;
+unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
+	unsigned long stop_time = 0;
 
 	while (n > 1) {
 		if (n % 2 == 0) {
@@ -58,10 +58,10 @@ unsigned long compute_length(unsigned long n, unsigned long *peak_alt) {
 			*peak_alt = n;
 		}
 
-		length++;
+		stop_time++;
 	}
 
-	return length; 
+	return stop_time; 
 }
 
 void print_histogram(unsigned long histogram[]) {

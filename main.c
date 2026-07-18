@@ -1,14 +1,12 @@
 #include <stdio.h>
 #include <time.h>
 
-#define MAX(x, y) ((x) > (y))?(x):(y)
-
-unsigned long compute_length(unsigned long int n);
+unsigned long compute_length(unsigned long int n, unsigned long *peak_alt);
 
 int main(void) {
 	clock_t start_time = clock();
 
-	unsigned long current_length, longest_length = 1, n = 1;
+	unsigned long current_length, longest_length = 1, n = 1, longest_n, max_altitude = 0;
 
 	while(1) {
 		double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
@@ -17,17 +15,22 @@ int main(void) {
 			break;
 		}
 
-		current_length = compute_length(n);
-		longest_length = MAX(current_length, longest_length); 
+		current_length = compute_length(n, &max_altitude);
+
+		if (current_length > longest_length) {
+			longest_n = n;
+			longest_length = current_length;
+		}
 		n++;
 	}
 
-	printf("Longest sequence of length: %lu\n", longest_length);
+	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_length, longest_n);
+	printf("Total numbers processed: %lu (peak altitude = %lu)\n\n", n, max_altitude);
 
 	return 0;
 }
 
-unsigned long compute_length(unsigned long n) {
+unsigned long compute_length(unsigned long n, unsigned long *peak_alt) {
 	unsigned long length = 0;
 
 	while (n > 1) {
@@ -36,6 +39,11 @@ unsigned long compute_length(unsigned long n) {
 		} else {
 			n = 3 * n + 1;
 		}
+
+		if (n > *peak_alt) {
+			*peak_alt = n;
+		}
+
 		length++;
 	}
 

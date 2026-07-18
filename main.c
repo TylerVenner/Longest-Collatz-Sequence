@@ -3,7 +3,8 @@
 
 #define BIN_SIZE 20
 #define NUM_BINS 50
-#define CACHE_SIZE 30000000
+#define CACHE_SIZE 40000000
+#define HIST_DENSITY 40000
 
 unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
 void print_histogram(unsigned long histogram[]);
@@ -79,6 +80,7 @@ unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
 }
 
 void print_histogram(unsigned long histogram[]) {
+	printf("Numbers per star (*): %d\n", HIST_DENSITY);
 	for (int i = 0; i < NUM_BINS; i++) {
 	    unsigned long range_start = i * BIN_SIZE;
 	    unsigned long range_end = range_start + BIN_SIZE - 1;
@@ -89,8 +91,7 @@ void print_histogram(unsigned long histogram[]) {
 		printf("%4lu-%-4lu | ", range_start, range_end);
 	    }
 
-	    // print one asterisk for every 10,000 items
-	    unsigned long stars = histogram[i] / 10000;
+	    unsigned long stars = histogram[i] / HIST_DENSITY;
 	    for (unsigned long s = 0; s < stars; s++) {
 		printf("*");
 	    }

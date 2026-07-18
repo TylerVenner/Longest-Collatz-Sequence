@@ -10,12 +10,14 @@ unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
 void print_histogram(unsigned long histogram[]);
 
 unsigned long cache[CACHE_SIZE];
+unsigned long actual_math_steps = 0;
 
 int main(void) {
 	clock_t start_time = clock();
 
 	unsigned long curr_stop_time, longest_stop_time = 1, n = 1, longest_n; 
 	unsigned long index, max_altitude = 0, histogram[NUM_BINS] = {0};
+	unsigned long theoretical_math_steps = 0;
 
 	while(1) {
 		// only check clock occasionally
@@ -26,9 +28,8 @@ int main(void) {
 			}
 		}
 
-		
-
 		curr_stop_time = compute_stop_time(n, &max_altitude);
+		theoretical_math_steps += curr_stop_time;
 
 		if (curr_stop_time > longest_stop_time) {
 			longest_n = n;
@@ -48,6 +49,12 @@ int main(void) {
 	printf("Total numbers processed: %lu (peak altitude = %le)\n\n", n, (double)max_altitude);
 
 	print_histogram(histogram);
+
+	double math_skipped_pct = 100.0 - ((double)actual_math_steps / theoretical_math_steps * 100.0);
+
+	printf("Theoretical math steps: %lu\n", theoretical_math_steps);
+	printf("Actual math steps: %lu\n", actual_math_steps);
+	printf("Work bypassed by cache: %.2f%%\n", math_skipped_pct);	
 
 	return 0;
 }
@@ -72,6 +79,7 @@ unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
 		}
 
 		stop_time++;
+		actual_math_steps++;
 	}
 
 	cache[n] = stop_time;

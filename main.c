@@ -1,12 +1,17 @@
 #include <stdio.h>
 #include <time.h>
 
+#define BIN_SIZE 20
+#define NUM_BINS 50
+
 unsigned long compute_length(unsigned long int n, unsigned long *peak_alt);
+void print_histogram(unsigned long histogram[]);
 
 int main(void) {
 	clock_t start_time = clock();
 
-	unsigned long current_length, longest_length = 1, n = 1, longest_n, max_altitude = 0;
+	unsigned long current_length, longest_length = 1, n = 1, longest_n, max_altitude = 0, index;
+	unsigned long histogram[NUM_BINS] = {0};
 
 	while(1) {
 		double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
@@ -21,11 +26,20 @@ int main(void) {
 			longest_n = n;
 			longest_length = current_length;
 		}
+
+		index = current_length / BIN_SIZE;
+		if (index >= NUM_BINS) {
+			index = NUM_BINS - 1;
+		}
+		histogram[index]++;
+
 		n++;
 	}
 
 	printf("\nLongest sequence of length: %lu (n = %lu)\n", longest_length, longest_n);
-	printf("Total numbers processed: %lu (peak altitude = %lu)\n\n", n, max_altitude);
+	printf("Total numbers processed: %lu (peak altitude = %le)\n\n", n, (double)max_altitude);
+
+	print_histogram(histogram);
 
 	return 0;
 }
@@ -48,4 +62,24 @@ unsigned long compute_length(unsigned long n, unsigned long *peak_alt) {
 	}
 
 	return length; 
+}
+
+void print_histogram(unsigned long histogram[]) {
+	for (int i = 0; i < NUM_BINS; i++) {
+	    unsigned long range_start = i * BIN_SIZE;
+	    unsigned long range_end = range_start + BIN_SIZE - 1;
+	    
+	    if (i == NUM_BINS - 1) {
+		printf("%4lu+      | ", range_start);
+	    } else {
+		printf("%4lu-%-4lu | ", range_start, range_end);
+	    }
+
+	    // print one asterisk for every 10,000 items
+	    unsigned long stars = histogram[i] / 10000;
+	    for (unsigned long s = 0; s < stars; s++) {
+		printf("*");
+	    }
+	    printf(" (%lu)\n", histogram[i]);
+	}
 }

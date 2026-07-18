@@ -3,7 +3,7 @@
 
 #define BIN_SIZE 20
 #define NUM_BINS 50
-#define CACHE_SIZE 20000000
+#define CACHE_SIZE 30000000
 
 unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
 void print_histogram(unsigned long histogram[]);
@@ -17,11 +17,15 @@ int main(void) {
 	unsigned long index, max_altitude = 0, histogram[NUM_BINS] = {0};
 
 	while(1) {
-		double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-
-		if (elapsed_seconds >= 1.0) {
-			break;
+		// only check clock occasionally
+		if (n % 10000 == 0) {
+			double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+			if (elapsed_seconds >= 1.0) {
+				break;
+			}
 		}
+
+		
 
 		curr_stop_time = compute_stop_time(n, &max_altitude);
 
@@ -51,10 +55,9 @@ unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
 	unsigned long stop_time = 0, n_new = n;
 
 	while (n_new > 1) {
-
 		if (n_new < CACHE_SIZE && cache[n_new] > 0) {
 			stop_time += cache[n_new];
-			return stop_time;
+			break;
 		}  
 
 		if (n_new % 2 == 0) {

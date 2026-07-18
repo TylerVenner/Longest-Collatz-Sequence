@@ -3,9 +3,12 @@
 
 #define BIN_SIZE 20
 #define NUM_BINS 50
+#define CACHE_SIZE 20000000
 
 unsigned long compute_stop_time(unsigned long int n, unsigned long *peak_alt);
 void print_histogram(unsigned long histogram[]);
+
+unsigned long cache[CACHE_SIZE];
 
 int main(void) {
 	clock_t start_time = clock();
@@ -45,21 +48,29 @@ int main(void) {
 }
 
 unsigned long compute_stop_time(unsigned long n, unsigned long *peak_alt) {
-	unsigned long stop_time = 0;
+	unsigned long stop_time = 0, n_new = n;
 
-	while (n > 1) {
-		if (n % 2 == 0) {
-			n = n / 2;
+	while (n_new > 1) {
+
+		if (n_new < CACHE_SIZE && cache[n_new] > 0) {
+			stop_time += cache[n_new];
+			return stop_time;
+		}  
+
+		if (n_new % 2 == 0) {
+			n_new = n_new / 2;
 		} else {
-			n = 3 * n + 1;
+			n_new = 3 * n_new + 1;
 		}
 
-		if (n > *peak_alt) {
-			*peak_alt = n;
+		if (n_new > *peak_alt) {
+			*peak_alt = n_new;
 		}
 
 		stop_time++;
 	}
+
+	cache[n] = stop_time;
 
 	return stop_time; 
 }

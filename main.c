@@ -2,7 +2,7 @@
 #include <time.h>
 #include <stdint.h>
 
-#define CACHE_SIZE 75000000
+#define CACHE_SIZE 80000000
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
 
@@ -15,8 +15,8 @@ int main(void) {
     uint64_t max_altitude = 0;
 
     while(1) {
-        // Only check clock occasionally
-        if (n % 10000 == 0) {
+        // 131071 is 0x1FFF
+        if ((n & 0x1FFFF) == 0) {
             double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
             if (elapsed_seconds >= 1.0) {
                 break;

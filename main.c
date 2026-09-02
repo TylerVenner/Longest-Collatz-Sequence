@@ -2,7 +2,7 @@
 #include <time.h>
 #include <stdint.h>
 
-#define CACHE_SIZE 150000000
+#define CACHE_SIZE 140000000
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
 
@@ -41,14 +41,12 @@ int main(void) {
 }
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
-    // 1. Even numbers drop immediately below n in exactly 1 step
     if ((n & 1) == 0) {
         uint64_t st = 1 + cache[n >> 1];
-        if (n < CACHE_SIZE) cache[n] = st;
+        cache[n] = st;
         return st;
     }
 
-    // 2. n is odd: loop runs with ZERO parity branches
     uint64_t stop_time = 0, n_new = n;
     uint64_t local_peak = *peak_alt;
 
@@ -58,17 +56,14 @@ uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
             local_peak = elevated;
         }
 
-        // Single-cycle hardware instruction: count all factors of 2
+        // count all factors of 2
         int zeros = __builtin_ctzll(elevated);
         n_new = elevated >> zeros;
         stop_time += 1 + zeros;
-        // n_new is guaranteed to be odd here; next iteration needs no checks
     }
 
     stop_time += cache[n_new];
-    if (n < CACHE_SIZE) {
-        cache[n] = stop_time;
-    }
+    cache[n] = stop_time;
 
     *peak_alt = local_peak;
     return stop_time;

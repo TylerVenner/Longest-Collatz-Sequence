@@ -2,14 +2,17 @@
 #include <time.h>
 #include <stdint.h>
 
-#define CACHE_SIZE 140000000
+#define MAX_SEED   150000000
+#define CACHE_SIZE (MAX_SEED / 2)
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
 
+// Cache stores ONLY odd numbers: index = n >> 1
+// cache[0] is n=1, cache[1] is n=3, cache[2] is n=5, etc.
 uint16_t cache[CACHE_SIZE];
 
 int main(void) {
-    cache[1] = 0;
+    cache[0] = 0; // Seed n = 1 (1 >> 1 = 0)
 
     clock_t start_time = clock();
 
@@ -24,7 +27,17 @@ int main(void) {
             }
         }
 
-        curr_stop_time = compute_stop_time(n, &max_altitude);
+        if ((n & 1) == 0) {
+            // strip all powers of 2
+            int zeros = __builtin_ctzll(n);
+            uint64_t odd_base = n >> zeros;
+
+            // already in the cache
+            curr_stop_time = zeros + cache[odd_base >> 1];
+        } else {
+            curr_stop_time = compute_stop_time(n, &max_altitude);
+            cache[n >> 1] = (uint16_t)curr_stop_time;
+        }
 
         if (curr_stop_time > longest_stop_time) {
             longest_n = n;
@@ -41,12 +54,6 @@ int main(void) {
 }
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
-    if ((n & 1) == 0) {
-        uint64_t st = 1 + cache[n >> 1];
-        cache[n] = st;
-        return st;
-    }
-
     uint64_t stop_time = 0, n_new = n;
     uint64_t local_peak = *peak_alt;
 
@@ -56,14 +63,12 @@ uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
             local_peak = elevated;
         }
 
-        // count all factors of 2
         int zeros = __builtin_ctzll(elevated);
         n_new = elevated >> zeros;
         stop_time += 1 + zeros;
     }
 
-    stop_time += cache[n_new];
-    cache[n] = stop_time;
+    stop_time += cache[n_new >> 1];
 
     *peak_alt = local_peak;
     return stop_time;

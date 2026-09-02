@@ -2,20 +2,21 @@
 #include <time.h>
 #include <stdint.h>
 
-#define CACHE_SIZE 80000000
+#define CACHE_SIZE 140000000
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
 
 uint16_t cache[CACHE_SIZE];
 
 int main(void) {
+    cache[1] = 0;
+
     clock_t start_time = clock();
 
-    uint64_t curr_stop_time, longest_stop_time = 1, n = 1, longest_n = 1; 
+    uint64_t curr_stop_time, longest_stop_time = 1, n = 2, longest_n = 1; 
     uint64_t max_altitude = 0;
 
-    while(1) {
-        // 131071 is 0x1FFF
+    while (1) {
         if ((n & 0x1FFFF) == 0) {
             double elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
             if (elapsed_seconds >= 1.0) {
@@ -41,27 +42,25 @@ int main(void) {
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
     uint64_t stop_time = 0, n_new = n;
+    uint64_t local_peak = *peak_alt;
 
-    while (n_new > 1) {
-        if (n_new < CACHE_SIZE && cache[n_new] > 0) {
-            stop_time += cache[n_new];
-            break;
-        }  
-
+    while (n_new >= n) {
         if ((n_new & 1) == 0) {
-            n_new = n_new >> 1;
+            n_new >>= 1;
             stop_time++;
         } else {
             n_new = (3 * n_new + 1) >> 1;
             stop_time += 2;
         }
 
-        if (n_new > *peak_alt) {
-            *peak_alt = n_new;
+        if (n_new > local_peak) {
+            local_peak = n_new;
         }
     }
 
+    stop_time += cache[n_new];
     cache[n] = stop_time;
 
+    *peak_alt = local_peak;
     return stop_time; 
 }

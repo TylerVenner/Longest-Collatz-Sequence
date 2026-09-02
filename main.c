@@ -4,7 +4,7 @@
 
 #define BIN_SIZE 20
 #define NUM_BINS 50
-#define CACHE_SIZE 40000000
+#define CACHE_SIZE 60000000
 #define HIST_DENSITY 60000
 
 uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt);
@@ -60,12 +60,12 @@ uint64_t compute_stop_time(uint64_t n, uint64_t *peak_alt) {
 			break;
 		}  
 
-		if (n_new % 2 == 0) {
-			n_new = n_new / 2;
+		if ((n_new & 1) == 0) {
+			n_new = n_new >> 1;
 			stop_time++;
 			actual_math_steps++;
 		} else {
-			n_new = (3 * n_new + 1) / 2;
+			n_new = (3 * n_new + 1) >> 1;
 			stop_time += 2;
 			actual_math_steps +=2;
 		}
